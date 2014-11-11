@@ -1,0 +1,22 @@
+--------B-11---------------------------------
+INT 11 - BIOS - GET EQUIPMENT LIST
+Return: AX = BIOS equipment list word
+	    bits
+	    0	  floppy disk(s) installed (see bits 6-7)
+	    1	  80x87 coprocessor installed
+	    2,3	  number of 16K banks of RAM on motherboard (PC only)
+		  number of 64K banks of RAM on motherboard (XT only)
+	    2	  pointing device installed (PS)
+	    3	  unused (PS)
+	    4-5	  initial video mode
+		  00 EGA, VGA, or PGA
+		  01 40x25 color
+		  10 80x25 color
+		  11 80x25 monochrome
+	    6-7	  number of floppies installed less 1 (if bit 0 set)
+	    8	  DMA support installed (PCjr, some Tandy 1000s, 1400LT)
+	    9-11  number of serial ports installed
+	    12	  game port installed
+	    13	  serial printer attached (PCjr)
+		  internal modem installed (PC/Convertible)
+	    14-15 number of parallel ports installed

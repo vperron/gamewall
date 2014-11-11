@@ -1,0 +1,29 @@
+;    invoke GetCurrentProcessId                              ; it is rundll32
+;    mov myPID, eax
+;    invoke CreateToolhelp32Snapshot,TH32CS_SNAPMODULE,myPID
+;    mov hSnSh,eax
+;    mov Mod32.dwSize, sizeof Mod32
+;    invoke Module32First,hSnSh,addr Mod32                   ; we seek the different modules of the process
+;    invoke lstrcmpi,addr szTimeDate,addr Mod32.szModule
+;    jz TimeDateFound
+;@@:
+;    invoke Module32Next,hSnSh,addr Mod32
+;    cmp eax, FALSE
+;    jz NoRunDllPresent
+;    invoke lstrcmpi,addr szTimeDate,addr Mod32.szModule     ; is one of this module timedate.cpl ?
+;    jnz @B
+
+
+;    invoke GetAsyncKeyState,VK_F12
+;    clc
+;    bt eax, 0
+;    jc Pressed
+;    bt eax, 31
+;    jnc @F
+;Pressed:
+;    invoke OpenProcess,PROCESS_ALL_ACCESS,NULL,hWnd
+;    push eax
+;    invoke WriteProcessMemory,eax,ModifPtr,addr Write,2,addr read
+;    pop eax
+;    invoke CloseHandle,eax
+;@@: 

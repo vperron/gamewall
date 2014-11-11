@@ -1,0 +1,37 @@
+
+#include "\masm32\include\resource.h"
+
+
+200                     BINARY                  "gamewall.dll"
+
+
+100 DIALOGEX MOVEABLE IMPURE LOADONCALL DISCARDABLE 0, 0, 186, 130, 0
+STYLE DS_MODALFRAME | 0x0004 | DS_CENTER | WS_CAPTION | WS_SYSMENU | WS_VISIBLE | WS_POPUP
+CAPTION "GameWall Configuration"
+FONT 8, "Tahoma", 700, 0
+BEGIN
+    PUSHBUTTON      "[+]",2000,67,4,50,14,BS_FLAT, , 0
+    PUSHBUTTON      "[-]",2001,67,22,50,14,BS_FLAT, , 0
+    LISTBOX         500,0,18,64,95,LBS_SORT | LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP, , 0
+    LISTBOX         501,122,18,64,96,LBS_SORT | LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP, , 0
+    PUSHBUTTON      "&Save",     1002,  67,41,50,14,  BS_FLAT, , 0
+    PUSHBUTTON      "&Close",    1003,  67,58,50,14,  BS_FLAT, , 0
+    PUSHBUTTON      "&End Blocking",1004,67,76,50,14,BS_FLAT, , 0
+    CTEXT           "Blocked Apps",IDC_STATIC,5,5,53,9,WS_BORDER, , 0
+    CTEXT           "Privilegied",IDC_STATIC,126,5,53,9,WS_BORDER, , 0
+    PUSHBUTTON      "&Change Pass",1005,67,94,50,14,BS_FLAT, , 0
+END
+
+101 DIALOGEX MOVEABLE IMPURE LOADONCALL DISCARDABLE 0, 0, 291, 15, 0
+STYLE  DS_MODALFRAME | 0x0004 | DS_CENTER | WS_CAPTION | WS_SYSMENU | WS_VISIBLE | WS_POPUP
+CAPTION "Please enter passphrase..."
+FONT 8, "MS Sans Serif", 700, 0 /*FALSE*/
+BEGIN
+    DEFPUSHBUTTON   "OK",211,241,1,50,13,BS_FLAT, , 0
+    EDITTEXT        210,0,0,236,15,ES_AUTOHSCROLL, , 0
+END
+
+
+
+IDI_ICON1               ICON                    "icon1.ico"
+300                     BITMAP                  "Nag.bmp"

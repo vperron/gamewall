@@ -1,0 +1,75 @@
+/***************************************************************************/
+/* RAW2DB v1.02 - Resource File						   */
+/***************************************************************************/
+#define	DIALOG_MAIN	4848
+#define MY_ICON		4849
+
+#define	IDC_GO		3000
+#define	IDC_ABOUT	3001
+#define	ID_OPTION1_X	3002
+#define	ID_OPTION1_x	3003
+#define	ID_OPTION1_d	3004
+#define ID_OPTION1_xc	3005
+#define	ID_OPTION2_db	3006
+#define	ID_OPTION2_dw	3007
+#define	ID_OPTION2_dd	3008
+#define	ID_OPTION2_dq	3009
+#define	IDC_OPTION3	3010
+#define IDC_OPTION4	3011
+#define	IDC_OPTION5	3012
+#define	IDC_OPTION6	3013
+
+MY_ICON			ICON	"raw2db.ico"
+
+/***************************************************************************/
+
+DIALOG_MAIN DIALOG 0, 0, 179, 94
+STYLE DS_MODALFRAME | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Raw2db v1.02 - Lucifer48 [PC]"
+FONT 8, "MS Sans Serif"
+BEGIN
+    GROUPBOX        "Options:", -1, 3, 2, 135, 90, WS_GROUP
+    AUTORADIOBUTTON "%Xh", ID_OPTION1_X, 10, 15, 30, 9, WS_GROUP
+    AUTORADIOBUTTON "%xh", ID_OPTION1_x, 42, 15, 30, 9
+    AUTORADIOBUTTON "%d", ID_OPTION1_d, 74, 15, 30, 9
+    AUTORADIOBUTTON "0x%X", ID_OPTION1_xc, 106, 15, 30, 9
+    AUTORADIOBUTTON "db", ID_OPTION2_db, 10, 30, 30, 9, WS_GROUP
+    AUTORADIOBUTTON "dw", ID_OPTION2_dw, 42, 30, 30, 9
+    AUTORADIOBUTTON "dd", ID_OPTION2_dd, 74, 30, 30, 9
+    AUTORADIOBUTTON "dq", ID_OPTION2_dq, 106, 30, 30, 9
+    
+    RTEXT	    "Items per line:", -1, 10, 45, 43, 9
+    RTEXT	    "Separator:",      -1, 10, 60, 43, 9
+    RTEXT	    "End of line:",    -1, 10, 77, 43, 9
+    EDITTEXT        IDC_OPTION3, 56, 43, 20, 12, ES_AUTOHSCROLL | ES_NUMBER
+    AUTOCHECKBOX    "Big endian", IDC_OPTION6, 85, 45, 46, 9
+    EDITTEXT        IDC_OPTION4, 56, 59, 50, 12, ES_AUTOHSCROLL
+    EDITTEXT        IDC_OPTION5, 56, 75, 50, 12, ES_AUTOHSCROLL
+
+    PUSHBUTTON   "&About", IDC_ABOUT, 142, 56, 35, 16, WS_BORDER
+    PUSHBUTTON   "&Go !", IDC_GO, 142, 75, 35, 16, WS_BORDER
+END
+
+/***************************************************************************/
+
+1 VERSIONINFO
+FILEVERSION	1,0,2,0
+PRODUCTVERSION	1,0,2,0
+BEGIN
+	BLOCK "StringFileInfo"
+	BEGIN
+		BLOCK "040904E4"
+		BEGIN
+			VALUE "Comments",	"Win32asm 4 Life ;)\0"
+			VALUE "FileDescription","Raw2db\0"
+			VALUE "FileVersion",	"1.02\0"
+			VALUE "LegalCopyright",	"Copyright \251 2000-2001 Lucifer48 [PC]\0"
+			VALUE "ProductName",	"Raw2db\0"
+			VALUE "ProductVersion",	"1.02\0"
+		END
+	END
+	BLOCK "VarFileInfo"
+	BEGIN
+		VALUE "Translation", 1036, 1200
+	END
+END

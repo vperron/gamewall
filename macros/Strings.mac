@@ -1,0 +1,1527 @@
+comment ^
+
+;; Text macros collection
+
+;; Written by Four-F (four-f@mail.ru)
+;; Last updated 26-Nov-2002
+;; Your improvements, suggestions and bugfixes are welcomed.
+
+;; Compatible witn windows.inc v.1.25a & v.1.25b
+
+STRINGA / STRINGW are internal macros. Basically you don't need to use them.
+
+
+::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+:                                     S Y N T A X                                                  :
+::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+    MacroName quotedtext [,lebel] [,alignment]
+    or
+    MacroName quotedtext [,alignment] [,lebel]
+
+    $MacroName(quotedtext [,lebel] [,alignment])
+    or
+    $MacroName(quotedtext [,alignment] [,lebel])
+
+
+----------------------------------------------------------------------------------------------------
+- MacroName / $MacroName:
+
+C - constant string. String is defined in read-only section.
+T - all macros have 'T' char in its names. It means Text.
+A - macro defines ASCII string.
+W - macro defines Wide (Unicode) string. The size of each character is 2 bytes.
+0 - zero character not 'O'. Defined string is terminated by zero byte (ASCII) or zero word (Unicode).
+$ - macro function. Returns offset to defined text.
+
+TA / TW / T
+CTA / CTW / CT
+
+$TA / $TW / $T
+$CTA / $CTW / $CT
+
+TA0 / TW0 T0
+CTA0  / CTW0 / CT0
+
+$TA0 / $TW0 / $T0
+$CTA0 / $CTW0 / $CT0
+
+Each macro has corresponding macro function wich name is prepended with '$' character.
+All macro function return offset to defined text.
+All macro return nothing.
+If macro name doesn't contain neither 'A' nor 'W' character,
+its behaviour depends on defenition global variable UNICODE.
+If UNICODE is undefined or equal to 0, that macro defines ASCII string.
+If UNICODE is defined and doesn't equal to 0, that macro defines Unicode string.
+
+You can define UNICODE global variable two ways:
+    - in command line to ml.exe
+        \DUNICODE=1
+    - in source code
+        UNICODE = 1
+            or
+        UNICODE equ 1
+
+
+----------------------------------------------------------------------------------------------------
+-   quotedtext:
+
+The first parameter is "quoted text" you want to define.
+It is required and must be in quotation marks.
+
+You can use escape characters.
+
+    esc. char.     code         symbol
+    --------------------------------------------------
+        \:         21h            '!'
+        \{         28h            '('
+        \}         29h            ')'
+        \[         3Ch            '<'
+        \]         3Eh            '>'
+        \=         22h            '"'
+        \0          0             zero byte/word
+        \n         0Dh, 0Ah       new line
+        \r         0Dh            carrige return
+        \l         0Ah            line feed
+        \t          9             horizontal tabulation
+
+
+----------------------------------------------------------------------------------------------------
+-   lebel, alignment:
+
+The second and third parameters are optional.
+It can be either label or alignment.
+The macros recognize is it label or alignment automatically.
+
+Later you can reference defined text by this label.
+
+Alignment can be immediate value of 1 (byte), 2 (word) or 4 (dword).
+By default alignment is:
+    - 1 for ascii string
+    - 2 for unicode string
+
+
+::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+:                                  L I M I T A T I O N S                                           :
+::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+---
+Unicode string can be up to 47 characters long.
+Otherwise you'll get assembler error:
+     : error A2042: statement too complex
+
+Hope i'll fix this later.
+
+---
+To define empty string use:
+    mov eax, $TA0()
+
+DON'T DO THIS:
+    mov eax, $TA0("")
+
+
+::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+:                                      E X A M P L E S                                             :
+::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+
+
+The most usable macros are: $TA0, $CTA0, $TW0, $CTW0
+
+
+
+::::::::::::::::::::::::::::::::::::::::::::: Ex 1 :::::::::::::::::::::::::::::::::::::::::::::::::
+
+invoke AppendMenu, hMenuPopupFile, MF_STRING, IDM_OPEN, $CTA0("&Open...\tCtrl+O")
+
+    Expands to:
+
+.const
+??? db "&Open...", 9, "Ctrl+O", 0
+.code
+invoke AppendMenu, hMenuPopupFile, MF_STRING, IDM_OPEN, offset ???
+
+
+
+::::::::::::::::::::::::::::::::::::::::::::: Ex 2 :::::::::::::::::::::::::::::::::::::::::::::::::
+
+TA0 "http://board.win32asmcommunity.net/", szUrl, 4
+invoke MessageBox, NULL, offset szUrl, $TA0("Go To", 4), MB_OK
+
+    Expands to:
+
+.data
+align 4
+szUrl db "http://board.win32asmcommunity.net/", 0
+align 4
+??? db "Go To", 0
+.code
+invoke MessageBox, NULL, offset szUrl, offset ???, MB_OK
+
+
+
+::::::::::::::::::::::::::::::::::::::::::::: Ex 3 :::::::::::::::::::::::::::::::::::::::::::::::::
+
+invoke MessageBox, NULL, $CTA0("\[ Well done\: :-\} \]"), $CTA0("Congratulations"), MB_OK
+
+    Expands to:
+
+.const
+??1 db "< Well done! :-) >", 0
+??2 db "Congratulations", 0
+.code	
+invoke MessageBox, NULL, offset ??1, ??2, MB_OK
+
+
+
+::::::::::::::::::::::::::::::::::::::::::::: Ex 4 :::::::::::::::::::::::::::::::::::::::::::::::::
+
+invoke IoCreateDevice, pDriverObject, 0, \
+			$CCOUNTED_UNICODE_STRING("\\Device\\DevName", g_usDeviceName, 4), \
+			FILE_DEVICE_UNKNOWN, 0, FALSE, addr g_pDeviceObject
+
+
+    Expands to:
+
+
+.const
+align 4
+??? dw "\" ,"D" ,"e" ,"v" ,"i" ,"c" ,"e" ,"\" ,"D" ,"e" ,"v" ,"N" ,"a" ,"m" ,"e" , 0
+align 4	         ; The UNICODE_STRING structure itself is always DWORD alignmented
+g_usDeviceName   dw (sizeof ???) - 2   ; UNICODE_STRING.Length
+                 dw (sizeof ???)       ; UNICODE_STRING.MaximumLength
+                 dd offset ???         ; UNICODE_STRING.Buffer
+.code
+invoke IoCreateDevice, pDriverObject, 0, offset g_usDeviceName, \
+			FILE_DEVICE_UNKNOWN, 0, FALSE, addr g_pDeviceObject
+
+
+
+
+::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+:                   R E A D Y    T O    C O M P I L E    E X A M P L E S                           :
+::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+
+:::::::::::::::::::::::::::::::::::::: Ready To Compile Ex 1 :::::::::::::::::::::::::::::::::::::::
+
+.386
+.model flat, stdcall
+option casemap:none
+
+include \masm32\include\windows.inc
+
+include \masm32\include\user32.inc
+include \masm32\include\kernel32.inc
+
+includelib \masm32\lib\user32.lib
+includelib \masm32\lib\kernel32.lib
+
+include \masm32\Macros\Strings.mac
+
+.data
+ms MEMORYSTATUS <>
+buffer db 100 dup(0)
+TA  "Percent of memory in use:\t\t%d\n", szFormat
+TA  "Bytes of physical memory:\t\t%d\n"
+TA  "Free physical memory bytes:\t\t%d\n"
+TA  "Bytes of paging file:\t\t\t%d\n"
+TA  "Free bytes of paging file:\t\t%d\n"
+TA  "User bytes of address space:\t\t%d\n"
+TA0 "Free user bytes:\t\t\t%d\n"
+
+.code
+start:
+invoke GlobalMemoryStatus, addr ms
+invoke wsprintf, addr buffer, addr szFormat, \
+								ms.dwMemoryLoad, \
+								ms.dwTotalPhys, \
+								ms.dwAvailPhys, \
+								ms.dwTotalPageFile, \
+								ms.dwAvailPageFile, \
+								ms.dwTotalVirtual, \
+								ms.dwAvailVirtual
+invoke MessageBox, NULL, addr buffer, $CTA0("Memory Info"), MB_OK
+ret
+end start
+
+
+
+:::::::::::::::::::::::::::::::::::::: Ready To Compile Ex 2 :::::::::::::::::::::::::::::::::::::::
+
+.386
+.model flat, stdcall
+option casemap:none
+
+include \masm32\include\windows.inc
+include \masm32\include\user32.inc
+includelib \masm32\lib\user32.lib
+include \masm32\Macros\Strings.mac
+
+.code
+start:
+invoke WinHelp, NULL, $CTA0("\\masm32\\help\\masm32.hlp", 4), HELP_CONTENTS, 0
+ret
+end start
+
+
+
+:::::::::::::::::::::::::::::::::::::: Ready To Compile Ex 3 :::::::::::::::::::::::::::::::::::::::
+
+.386
+.model flat, stdcall
+option casemap:none
+
+include \masm32\include\windows.inc
+include \masm32\include\user32.inc
+includelib \masm32\lib\user32.lib
+include \masm32\Macros\Strings.mac
+
+.code
+start:
+invoke MessageBox, NULL, $CTA0("Cool program v. 1.00\nCopyright © Cool Coder, 2002"), $CTA0("About"), MB_OK
+ret
+end start
+
+
+
+:::::::::::::::::::::::::::::::::::::: Ready To Compile Ex 4 :::::::::::::::::::::::::::::::::::::::
+
+.386
+.model flat, stdcall
+option casemap:none
+
+includelib \masm32\lib\kernel32.lib
+includelib \masm32\lib\user32.lib
+
+include \masm32\mProgs\Macros\Strings.mac
+
+
+; under NT define 1
+; under w9x define 0
+
+UNICODE = 1
+
+LoadLibraryA proto :DWORD
+LoadLibraryW proto :DWORD
+
+IF UNICODE EQ 1
+	LoadLibrary equ <LoadLibraryW>
+ELSE
+	LoadLibrary equ <LoadLibraryA>
+ENDIF
+
+GetProcAddress proto :DWORD, :DWORD
+
+MessageBoxA proto :DWORD, :DWORD, :DWORD, :DWORD
+MessageBoxW proto :DWORD, :DWORD, :DWORD, :DWORD
+
+IF UNICODE EQ 1
+	MessageBox equ <MessageBoxW>
+ELSE
+	MessageBox equ <MessageBoxA>
+ENDIF
+
+wsprintfA proto C :DWORD, :DWORD, :VARARG
+wsprintfW proto C :DWORD, :DWORD, :VARARG
+
+IF UNICODE EQ 1
+	wsprintf equ <wsprintfW>
+ELSE
+	wsprintf equ <wsprintfA>
+ENDIF
+
+proto04 TYPEDEF proto :DWORD, :DWORD, :DWORD, :DWORD
+pproto04 TYPEDEF PTR proto04
+
+.data?
+pfnMassageBox	DWORD		?
+hinstUser32		DWORD		?
+buffer			BYTE 32 dup(?)
+
+.code
+start:
+
+invoke LoadLibrary, $CT0("user32.dll", 4)
+mov hinstUser32, eax
+
+;; Exported functions names is always ASCII
+IF UNICODE EQ 1
+	invoke GetProcAddress, hinstUser32, $CTA0("MessageBoxW", 4)
+ELSE
+	invoke GetProcAddress, hinstUser32, $CTA0("MessageBoxA", 4)
+ENDIF
+
+mov pfnMassageBox, eax
+
+invoke wsprintf, addr buffer, $CT0("%08X"), pfnMassageBox
+
+invoke pproto04 ptr [pfnMassageBox], 0, addr buffer, $CT0("MessageBox", 4), 0
+
+ret
+end start
+
+
+
+
+
+
+
+
+.......................not finished yet. I'll fix this later.
+
+
+
+
+The structure itself is always DWORD alignmented
+COUNTED_UNICODE_STRING / $COUNTED_UNICODE_STRING
+CCOUNTED_UNICODE_STRING / $CCOUNTED_UNICODE_STRING
+^
+
+;:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+;;IFDEF UNICODE
+;;	UNICODE = 1
+;;ENDIF
+
+;:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+;                            T E X T   M A C R O S   S T A R T                                      
+;:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+;:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+;                                               STRINGA                                             
+;:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+IFDEF UNICODE
+	IF UNICODE NE 0
+		STRING equ STRINGW
+	ELSE
+		STRING equ STRINGA
+	ENDIF
+ELSE
+	STRING equ STRINGA
+ENDIF
+
+;:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+STRINGA MACRO _s_, a:=<1>
+local txt, c, bslash, lq, sc
+txt TEXTEQU <>
+bslash = 0						;; backslash reached
+
+lq = 0							;; leading quotation mark ( "...... )
+sc = 0							;; separating comma ( ...,... )
+
+	ALIGN a
+	;; remove quotation marks
+	sText SUBSTR <_s_>, 2, @SizeStr(<_s_>) - 2
+
+	% FORC cha, <sText>
+		IF bslash
+			bslash = 0
+			IF "&cha" EQ "\"
+				IF sc
+					txt CATSTR txt, <,>
+					sc = 0
+				ENDIF
+				IF lq
+					txt CATSTR txt, <&cha>
+				ELSE
+					txt CATSTR txt, <">, <&cha>			;; add ( " )
+					lq = 1								;; set flag
+				ENDIF
+			ELSE
+				IF lq
+					txt CATSTR txt, <">					;;"
+					lq = 0
+					sc = 1
+				ENDIF
+				IF sc
+					txt CATSTR txt, <,>
+				ENDIF
+			
+				IF "&cha" EQ "n"			;;  \n   = CR, LF
+					txt CATSTR txt, <0Dh,0Ah>
+				ELSEIF "&cha" EQ ":"		;;  \:   = !
+					txt CATSTR txt, <21h>
+				ELSEIF "&cha" EQ "{"		;;  \{   = (
+					txt CATSTR txt, <28h>
+				ELSEIF "&cha" EQ "}"		;;  \}   = )
+					txt CATSTR txt, <29h>
+				ELSEIF "&cha" EQ "["		;;  \[   = <
+					txt CATSTR txt, <3Ch>
+				ELSEIF "&cha" EQ "]"		;;  \]   = >
+					txt CATSTR txt, <3Eh>
+				ELSEIF "&cha" EQ "="		;;  \=   = "
+					txt CATSTR txt, <22h>
+				ELSEIF "&cha" EQ "0"		;;  \0   = 0
+					txt CATSTR txt, <0h>
+				ELSEIF "&cha" EQ "r"		;;  \r   = CR
+					txt CATSTR txt, <0Dh>
+				ELSEIF "&cha" EQ "l"		;;  \l   = LF
+					txt CATSTR txt, <0Ah>
+				ELSEIF "&cha" EQ "t"		;;  \t   = TAB
+					txt CATSTR txt, <9h>
+				ENDIF
+				sc = 1
+			ENDIF
+		ELSE
+			IF "&cha" EQ "\"
+				bslash = 1
+			ELSE
+				IF sc
+					txt CATSTR txt, <,>
+					sc = 0
+				ENDIF
+				IF lq
+					txt CATSTR txt, <&cha>
+				ELSE
+					txt CATSTR txt, <">, <&cha>			;; add leading ( " )
+					lq = 1								;; set flag
+				ENDIF
+			ENDIF
+		ENDIF
+
+	ENDM
+
+	IF lq
+		txt CATSTR txt, <">					;;"
+	ENDIF
+
+	EXITM <txt>
+ENDM
+
+;:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+;                                               STRINGW                                             
+;:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+STRINGW MACRO _s_, a:=<2>
+local txt, c, bslash, lq, sc
+txt TEXTEQU <>
+bslash = 0						;; backslash reached
+
+lq = 0							;; leading quotation mark ( "...... )
+sc = 0							;; separating comma ( ...,... )
+
+	IF a LT 2
+		ALIGN 2
+	ELSE
+		ALIGN a
+	ENDIF
+
+	;; remove quotation marks
+	sText SUBSTR <_s_>, 2, @SizeStr(<_s_>) - 2
+
+	% FORC cha, <sText>
+		IF bslash
+			bslash = 0
+			IF "&cha" EQ "\"
+				IF sc
+					txt CATSTR txt, <,>
+					sc = 0
+				ENDIF
+				txt CATSTR txt, <"&cha">
+				sc = 1
+			ELSE
+				IF lq
+					txt CATSTR txt, <">					;;"
+					lq = 0
+					sc = 1
+				ENDIF
+				IF sc
+					txt CATSTR txt, <,>
+				ENDIF
+			
+				IF "&cha" EQ "n"			;;  \n   = CR, LF
+					txt CATSTR txt, <0Dh,0Ah>
+				ELSEIF "&cha" EQ ":"		;;  \:   = !
+					txt CATSTR txt, <21h>
+				ELSEIF "&cha" EQ "{"		;;  \{   = (
+					txt CATSTR txt, <28h>
+				ELSEIF "&cha" EQ "}"		;;  \}   = )
+					txt CATSTR txt, <29h>
+				ELSEIF "&cha" EQ "["		;;  \[   = <
+					txt CATSTR txt, <3Ch>
+				ELSEIF "&cha" EQ "]"		;;  \]   = >
+					txt CATSTR txt, <3Eh>
+				ELSEIF "&cha" EQ "="		;;  \=   = "
+					txt CATSTR txt, <22h>
+				ELSEIF "&cha" EQ "0"		;;  \0   = 0
+					txt CATSTR txt, <0>
+				ELSEIF "&cha" EQ "r"		;;  \r   = CR
+					txt CATSTR txt, <0Dh>
+				ELSEIF "&cha" EQ "l"		;;  \l   = LF
+					txt CATSTR txt, <0Ah>
+				ELSEIF "&cha" EQ "t"		;;  \t   = TAB
+					txt CATSTR txt, <9h>
+				ENDIF
+				sc = 1
+			ENDIF
+		ELSE
+			IF "&cha" EQ "\"
+				bslash = 1
+			ELSE
+				IF sc
+					txt CATSTR txt, <,>
+					sc = 0
+				ENDIF
+				txt CATSTR txt, <"&cha">
+				sc = 1
+			ENDIF
+		ENDIF
+	ENDM
+
+	EXITM <txt>
+ENDM
+
+;:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+;                                       TA /CTA / TW / CTW                                          
+;:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+TA MACRO txt, lora, aorl
+	local d, aln, sn
+	sn TEXTEQU @CurSeg
+
+	aln TEXTEQU <1>
+
+	IFNB <lora>
+		IF (OPATTR (lora)) AND 00000100y	;; immediate value ?
+			;; yes -> lora is alignment
+			aln TEXTEQU %lora
+		ELSE
+			;; no -> lora is label
+			d TEXTEQU <lora>
+		ENDIF
+	ENDIF
+
+	IFNB <aorl>
+		IF (OPATTR (aorl)) AND 00000100y	;; immediate value ?
+			;; yes -> aorl is alignment
+			aln TEXTEQU %aorl
+		ELSE
+			;; no -> aorl is label
+			d TEXTEQU <aorl>
+		ENDIF
+	ENDIF
+
+	.data
+	IF @SizeStr(<txt>)
+		d db STRINGA(<txt>, aln)
+	ELSE
+		ALIGN aln
+		d db 0
+	ENDIF
+	@CurSeg ENDS
+	sn SEGMENT
+ENDM
+
+;:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+CTA MACRO txt, lora, aorl
+	local d, aln, sn
+	sn TEXTEQU @CurSeg
+
+	aln TEXTEQU <1>
+
+	IFNB <lora>
+		IF (OPATTR (lora)) AND 00000100y	;; immediate value ?
+			;; yes -> lora is alignment
+			aln TEXTEQU %lora
+		ELSE
+			;; no -> lora is label
+			d TEXTEQU <lora>
+		ENDIF
+	ENDIF
+
+	IFNB <aorl>
+		IF (OPATTR (aorl)) AND 00000100y	;; immediate value ?
+			;; yes -> aorl is alignment
+			aln TEXTEQU %aorl
+		ELSE
+			;; no -> aorl is label
+			d TEXTEQU <aorl>
+		ENDIF
+	ENDIF
+
+	.const
+	IF @SizeStr(<txt>)
+		d db STRINGA(<txt>, aln)
+	ELSE
+		ALIGN aln
+		d db 0
+	ENDIF
+	@CurSeg ENDS
+	sn SEGMENT
+ENDM
+
+;:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+TW MACRO txt, lora, aorl
+	local d, aln, sn
+	sn TEXTEQU @CurSeg
+
+	aln TEXTEQU <2>
+
+	IFNB <lora>
+		IF (OPATTR (lora)) AND 00000100y	;; immediate value ?
+			;; yes -> lora is alignment
+			aln TEXTEQU %lora
+		ELSE
+			;; no -> lora is label
+			d TEXTEQU <lora>
+		ENDIF
+	ENDIF
+
+	IFNB <aorl>
+		IF (OPATTR (aorl)) AND 00000100y	;; immediate value ?
+			;; yes -> aorl is alignment
+			aln TEXTEQU %aorl
+		ELSE
+			;; no -> aorl is label
+			d TEXTEQU <aorl>
+		ENDIF
+	ENDIF
+
+	.data
+	IF @SizeStr(<txt>)
+		d dw STRINGW(<txt>, aln)
+	ELSE
+		ALIGN aln
+		d dw 0		
+	ENDIF
+	@CurSeg ENDS
+	sn SEGMENT
+ENDM
+
+;:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+CTW MACRO txt, lora, aorl
+	local d, aln, sn
+	sn TEXTEQU @CurSeg
+
+	aln TEXTEQU <2>
+
+	IFNB <lora>
+		IF (OPATTR (lora)) AND 00000100y	;; immediate value ?
+			;; yes -> lora is alignment
+			aln TEXTEQU %lora
+		ELSE
+			;; no -> lora is label
+			d TEXTEQU <lora>
+		ENDIF
+	ENDIF
+
+	IFNB <aorl>
+		IF (OPATTR (aorl)) AND 00000100y	;; immediate value ?
+			;; yes -> aorl is alignment
+			aln TEXTEQU %aorl
+		ELSE
+			;; no -> aorl is label
+			d TEXTEQU <aorl>
+		ENDIF
+	ENDIF
+
+	.const
+	IF @SizeStr(<txt>)
+		d dw STRINGW(<txt>, aln)
+	ELSE
+		ALIGN aln
+		d dw 0		
+	ENDIF
+	@CurSeg ENDS
+	sn SEGMENT
+ENDM
+
+;:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+T MACRO txt, lora, aorl
+IFDEF UNICODE
+	IF UNICODE NE 0
+		TW txt, lora, aorl
+	ELSE
+		TA txt, lora, aorl
+	ENDIF
+ELSE
+	TA txt, lora, aorl
+ENDIF
+ENDM
+
+;:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+CT MACRO txt, lora, aorl
+IFDEF UNICODE
+	IF UNICODE NE 0
+		CTW txt, lora, aorl
+	ELSE
+		CTA txt, lora, aorl
+	ENDIF
+ELSE
+	CTA txt, lora, aorl
+ENDIF
+ENDM
+
+;:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+;                                      $TA / $CTA / $TW / $CTW                                      
+;:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+$TA MACRO txt, lora, aorl
+	local d, aln, sn
+	sn TEXTEQU @CurSeg
+
+	aln TEXTEQU <1>
+
+	IFNB <lora>
+		IF (OPATTR (lora)) AND 00000100y	;; immediate value ?
+			;; yes -> lora is alignment
+			aln TEXTEQU %lora
+		ELSE
+			;; no -> lora is label
+			d TEXTEQU <lora>
+		ENDIF
+	ENDIF
+
+	IFNB <aorl>
+		IF (OPATTR (aorl)) AND 00000100y	;; immediate value ?
+			;; yes -> aorl is alignment
+			aln TEXTEQU %aorl
+		ELSE
+			;; no -> aorl is label
+			d TEXTEQU <aorl>
+		ENDIF
+	ENDIF
+
+	.data
+	IF @SizeStr(<txt>)
+		d db STRINGA(<txt>, aln)
+	ELSE
+		ALIGN aln
+		d db 0		
+	ENDIF
+	@CurSeg ENDS
+	sn SEGMENT
+	EXITM <offset d>
+ENDM
+
+;:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+$CTA MACRO txt, lora, aorl
+	local d, aln, sn
+	sn TEXTEQU @CurSeg
+
+	aln TEXTEQU <1>
+
+	IFNB <lora>
+		IF (OPATTR (lora)) AND 00000100y	;; immediate value ?
+			;; yes -> lora is alignment
+			aln TEXTEQU %lora
+		ELSE
+			;; no -> lora is label
+			d TEXTEQU <lora>
+		ENDIF
+	ENDIF
+
+	IFNB <aorl>
+		IF (OPATTR (aorl)) AND 00000100y	;; immediate value ?
+			;; yes -> aorl is alignment
+			aln TEXTEQU %aorl
+		ELSE
+			;; no -> aorl is label
+			d TEXTEQU <aorl>
+		ENDIF
+	ENDIF
+
+	.const
+	IF @SizeStr(<txt>)
+		d db STRINGA(<txt>, aln)
+	ELSE
+		ALIGN aln
+		d db 0		
+	ENDIF
+	@CurSeg ENDS
+	sn SEGMENT
+	EXITM <offset d>
+ENDM
+
+;:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+$TW MACRO txt, lora, aorl
+	local d, aln, sn
+	sn TEXTEQU @CurSeg
+
+	aln TEXTEQU <2>
+
+	IFNB <lora>
+		IF (OPATTR (lora)) AND 00000100y	;; immediate value ?
+			;; yes -> lora is alignment
+			aln TEXTEQU %lora
+		ELSE
+			;; no -> lora is label
+			d TEXTEQU <lora>
+		ENDIF
+	ENDIF
+
+	IFNB <aorl>
+		IF (OPATTR (aorl)) AND 00000100y	;; immediate value ?
+			;; yes -> aorl is alignment
+			aln TEXTEQU %aorl
+		ELSE
+			;; no -> aorl is label
+			d TEXTEQU <aorl>
+		ENDIF
+	ENDIF
+
+	.data
+	IF @SizeStr(<txt>)
+		d dw STRINGW(<txt>, aln)
+	ELSE
+		ALIGN aln
+		d dw 0		
+	ENDIF
+	@CurSeg ENDS
+	sn SEGMENT
+	EXITM <offset d>
+ENDM
+
+;:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+$CTW MACRO txt, lora, aorl
+	local d, aln, sn
+	sn TEXTEQU @CurSeg
+
+	aln TEXTEQU <2>
+
+	IFNB <lora>
+		IF (OPATTR (lora)) AND 00000100y	;; immediate value ?
+			;; yes -> lora is alignment
+			aln TEXTEQU %lora
+		ELSE
+			;; no -> lora is label
+			d TEXTEQU <lora>
+		ENDIF
+	ENDIF
+
+	IFNB <aorl>
+		IF (OPATTR (aorl)) AND 00000100y	;; immediate value ?
+			;; yes -> aorl is alignment
+			aln TEXTEQU %aorl
+		ELSE
+			;; no -> aorl is label
+			d TEXTEQU <aorl>
+		ENDIF
+	ENDIF
+
+	.const
+	IF @SizeStr(<txt>)
+		d dw STRINGW(<txt>, aln)
+	ELSE
+		ALIGN aln
+		d dw 0		
+	ENDIF
+	@CurSeg ENDS
+	sn SEGMENT
+	EXITM <offset d>
+ENDM
+
+;:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+$T MACRO txt, lora, aorl
+IFDEF UNICODE
+	IF UNICODE NE 0
+		EXITM $TW(txt, lora, aorl)
+	ELSE
+		EXITM $TA(txt, lora, aorl)
+	ENDIF
+ELSE
+	EXITM $TA(txt, lora, aorl)
+ENDIF
+ENDM
+
+;:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+$CT MACRO txt, lora, aorl
+IFDEF UNICODE
+	IF UNICODE NE 0
+		EXITM $CTW(txt, lora, aorl)
+	ELSE
+		EXITM $CTA(txt, lora, aorl)
+	ENDIF
+ELSE
+	EXITM $CTA(txt, lora, aorl)
+ENDIF
+ENDM
+
+;:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+;                                     TA0 / CTA0 / TW0 / CTW0                                       
+;:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+TA0 MACRO txt, lora, aorl
+	local d, aln, sn
+	sn TEXTEQU @CurSeg
+
+	aln TEXTEQU <1>
+
+	IFNB <lora>
+		IF (OPATTR (lora)) AND 00000100y	;; immediate value ?
+			;; yes -> lora is alignment
+			aln TEXTEQU %lora
+		ELSE
+			;; no -> lora is label
+			d TEXTEQU <lora>
+		ENDIF
+	ENDIF
+
+	IFNB <aorl>
+		IF (OPATTR (aorl)) AND 00000100y	;; immediate value ?
+			;; yes -> aorl is alignment
+			aln TEXTEQU %aorl
+		ELSE
+			;; no -> aorl is label
+			d TEXTEQU <aorl>
+		ENDIF
+	ENDIF
+
+	.data
+	IF @SizeStr(<txt>)
+		d db STRINGA(<txt>, aln), 0
+	ELSE
+		ALIGN aln
+		d db 0		
+	ENDIF
+	@CurSeg ENDS
+	sn SEGMENT
+ENDM
+
+;:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+TW0 MACRO txt, lora, aorl
+	local d, aln, sn
+	sn TEXTEQU @CurSeg
+
+	aln TEXTEQU <2>
+
+	IFNB <lora>
+		IF (OPATTR (lora)) AND 00000100y	;; immediate value ?
+			;; yes -> lora is alignment
+			aln TEXTEQU %lora
+		ELSE
+			;; no -> lora is label
+			d TEXTEQU <lora>
+		ENDIF
+	ENDIF
+
+	IFNB <aorl>
+		IF (OPATTR (aorl)) AND 00000100y	;; immediate value ?
+			;; yes -> aorl is alignment
+			aln TEXTEQU %aorl
+		ELSE
+			;; no -> aorl is label
+			d TEXTEQU <aorl>
+		ENDIF
+	ENDIF
+
+	.data
+	IF @SizeStr(<txt>)
+		d dw STRINGW(<txt>, aln), 0
+	ELSE
+		ALIGN aln
+		d dw 0		
+	ENDIF
+	@CurSeg ENDS
+	sn SEGMENT
+ENDM
+
+;:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+T0 MACRO txt, lora, aorl
+IFDEF UNICODE
+	IF UNICODE NE 0
+		TW0 txt, lora, aorl
+	ELSE
+		TA0 txt, lora, aorl
+	ENDIF
+ELSE
+	TA0 txt, lora, aorl
+ENDIF
+ENDM
+
+;:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+CTA0 MACRO txt, lora, aorl
+	local d, aln, sn
+	sn TEXTEQU @CurSeg
+
+	aln TEXTEQU <1>
+
+	IFNB <lora>
+		IF (OPATTR (lora)) AND 00000100y	;; immediate value ?
+			;; yes -> lora is alignment
+			aln TEXTEQU %lora
+		ELSE
+			;; no -> lora is label
+			d TEXTEQU <lora>
+		ENDIF
+	ENDIF
+
+	IFNB <aorl>
+		IF (OPATTR (aorl)) AND 00000100y	;; immediate value ?
+			;; yes -> aorl is alignment
+			aln TEXTEQU %aorl
+		ELSE
+			;; no -> aorl is label
+			d TEXTEQU <aorl>
+		ENDIF
+	ENDIF
+
+	.const
+	IF @SizeStr(<txt>)
+		d db STRINGA(<txt>, aln), 0
+	ELSE
+		ALIGN aln
+		d db 0		
+	ENDIF
+	@CurSeg ENDS
+	sn SEGMENT
+ENDM
+
+;:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+CTW0 MACRO txt, lora, aorl
+	local d, aln, sn
+	sn TEXTEQU @CurSeg
+
+	aln TEXTEQU <2>
+
+	IFNB <lora>
+		IF (OPATTR (lora)) AND 00000100y	;; immediate value ?
+			;; yes -> lora is alignment
+			aln TEXTEQU %lora
+		ELSE
+			;; no -> lora is label
+			d TEXTEQU <lora>
+		ENDIF
+	ENDIF
+
+	IFNB <aorl>
+		IF (OPATTR (aorl)) AND 00000100y	;; immediate value ?
+			;; yes -> aorl is alignment
+			aln TEXTEQU %aorl
+		ELSE
+			;; no -> aorl is label
+			d TEXTEQU <aorl>
+		ENDIF
+	ENDIF
+
+	.const
+	IF @SizeStr(<txt>)
+		d dw STRINGW(<txt>, aln), 0
+	ELSE
+		ALIGN aln
+		d dw 0		
+	ENDIF
+	@CurSeg ENDS
+	sn SEGMENT
+ENDM
+
+;:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+CT0 MACRO txt, lora, aorl
+IFDEF UNICODE
+	IF UNICODE NE 0
+		CTW0 txt, lora, aorl
+	ELSE
+		CTA0 txt, lora, aorl
+	ENDIF
+ELSE
+	CTA0 txt, lora, aorl
+ENDIF
+ENDM
+
+;:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+;                                     $TA0 / $CTA0 / $TW0 / $CTW0                                   
+;:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+$TA0 MACRO txt, lora, aorl
+	local d, aln, sn
+	sn TEXTEQU @CurSeg
+
+	aln TEXTEQU <1>
+
+	IFNB <lora>
+		IF (OPATTR (lora)) AND 00000100y	;; immediate value ?
+			;; yes -> lora is alignment
+			aln TEXTEQU %lora
+		ELSE
+			;; no -> lora is label
+			d TEXTEQU <lora>
+		ENDIF
+	ENDIF
+
+	IFNB <aorl>
+		IF (OPATTR (aorl)) AND 00000100y	;; immediate value ?
+			;; yes -> aorl is alignment
+			aln TEXTEQU %aorl
+		ELSE
+			;; no -> aorl is label
+			d TEXTEQU <aorl>
+		ENDIF
+	ENDIF
+
+	.data
+	IF @SizeStr(<txt>)
+		d db STRINGA(<txt>, aln), 0
+	ELSE
+		ALIGN aln
+		d db 0							;; empty str
+	ENDIF
+	@CurSeg ENDS
+	sn SEGMENT
+	EXITM <offset d>
+ENDM
+
+;:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+$TW0 MACRO txt, lora, aorl
+	local d, aln, sn
+	sn TEXTEQU @CurSeg
+
+	aln TEXTEQU <2>
+
+	IFNB <lora>
+		IF (OPATTR (lora)) AND 00000100y	;; immediate value ?
+			;; yes -> lora is alignment
+			aln TEXTEQU %lora
+		ELSE
+			;; no -> lora is label
+			d TEXTEQU <lora>
+		ENDIF
+	ENDIF
+
+	IFNB <aorl>
+		IF (OPATTR (aorl)) AND 00000100y	;; immediate value ?
+			;; yes -> aorl is alignment
+			aln TEXTEQU %aorl
+		ELSE
+			;; no -> aorl is label
+			d TEXTEQU <aorl>
+		ENDIF
+	ENDIF
+
+	.data
+	IF @SizeStr(<txt>)
+		d dw STRINGW(<txt>, aln), 0
+	ELSE
+		ALIGN aln
+		d dw 0		
+	ENDIF
+	@CurSeg ENDS
+	sn SEGMENT
+	EXITM <offset d>
+ENDM
+
+;:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+$T0 MACRO txt, lora, aorl
+IFDEF UNICODE
+	IF UNICODE NE 0
+		EXITM $TW0(txt, lora, aorl)
+	ELSE
+		EXITM $TA0(txt, lora, aorl)
+	ENDIF
+ELSE
+	EXITM $TA0(txt, lora, aorl)
+ENDIF
+ENDM
+
+;:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+$CTA0 MACRO txt, lora, aorl
+	local d, aln, sn
+	sn TEXTEQU @CurSeg
+
+	aln TEXTEQU <1>
+
+	IFNB <lora>
+		IF (OPATTR (lora)) AND 00000100y	;; immediate value ?
+			;; yes -> lora is alignment
+			aln TEXTEQU %lora
+		ELSE
+			;; no -> lora is label
+			d TEXTEQU <lora>
+		ENDIF
+	ENDIF
+
+	IFNB <aorl>
+		IF (OPATTR (aorl)) AND 00000100y	;; immediate value ?
+			;; yes -> aorl is alignment
+			aln TEXTEQU %aorl
+		ELSE
+			;; no -> aorl is label
+			d TEXTEQU <aorl>
+		ENDIF
+	ENDIF
+
+	.const
+	IF @SizeStr(<txt>)
+		d db STRINGA(<txt>, aln), 0
+	ELSE
+		ALIGN aln
+		d db 0							;; empty str
+	ENDIF
+	@CurSeg ENDS
+	sn SEGMENT
+	EXITM <offset d>
+ENDM
+
+;:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+$CTW0 MACRO txt, lora, aorl
+	local d, aln, sn
+	sn TEXTEQU @CurSeg
+
+	aln TEXTEQU <2>
+
+	IFNB <lora>
+		IF (OPATTR (lora)) AND 00000100y	;; immediate value ?
+			;; yes -> lora is alignment
+			aln TEXTEQU %lora
+		ELSE
+			;; no -> lora is label
+			d TEXTEQU <lora>
+		ENDIF
+	ENDIF
+
+	IFNB <aorl>
+		IF (OPATTR (aorl)) AND 00000100y	;; immediate value ?
+			;; yes -> aorl is alignment
+			aln TEXTEQU %aorl
+		ELSE
+			;; no -> aorl is label
+			d TEXTEQU <aorl>
+		ENDIF
+	ENDIF
+
+	.const
+	IF @SizeStr(<txt>)
+		d dw STRINGW(<txt>, aln), 0
+	ELSE
+		ALIGN aln
+		d dw 0		
+	ENDIF
+	@CurSeg ENDS
+	sn SEGMENT
+	EXITM <offset d>
+ENDM
+
+;:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+$CT0 MACRO txt, lora, aorl
+IFDEF UNICODE
+	IF UNICODE NE 0
+		EXITM $CTW0(txt, lora, aorl)
+	ELSE
+		EXITM $CTA0(txt, lora, aorl)
+	ENDIF
+ELSE
+	EXITM $CTA0(txt, lora, aorl)
+ENDIF
+ENDM
+
+;:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+;                     COUNTED_UNICODE_STRING / $COUNTED_UNICODE_STRING                              
+;                    CCOUNTED_UNICODE_STRING / $CCOUNTED_UNICODE_STRING                             
+;:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+IFNDEF UNICODE_STRING
+	UNICODE_STRING STRUCT
+		woLength		WORD	?		; len of string in bytes (not chars)
+		MaximumLength	WORD	?		; len of Buffer in bytes (not chars)
+		Buffer			DWORD	?		; pointer to string
+	UNICODE_STRING ENDS
+	PUNICODE_STRING	typedef	PTR UNICODE_STRING
+ENDIF
+
+;:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+COUNTED_UNICODE_STRING MACRO txt, lora, aorl
+
+	local dum, segn, us
+	segn TEXTEQU @CurSeg
+
+	aln TEXTEQU <2>
+
+	IFNB <lora>
+		IF (OPATTR (lora)) AND 00000100y	;; immediate value ?
+			;; yes -> lora is alignment
+			aln TEXTEQU %lora
+		ELSE
+			;; no -> lora is label
+			us TEXTEQU <lora>
+		ENDIF
+	ENDIF
+
+	IFNB <aorl>
+		IF (OPATTR (aorl)) AND 00000100y	;; immediate value ?
+			;; yes -> aorl is alignment
+			aln TEXTEQU %aorl
+		ELSE
+			;; no -> aorl is label
+			us TEXTEQU <aorl>
+		ENDIF
+	ENDIF
+
+	.data
+	IF @SizeStr(<txt>)
+		dum dw STRINGW(<txt>, aln), 0
+	ELSE
+		ALIGN aln
+		dum dw 0		
+	ENDIF
+
+	ALIGN 4
+
+	us UNICODE_STRING {(sizeof dum)-2, sizeof dum, offset dum}
+
+	@CurSeg ENDS
+	segn SEGMENT
+ENDM
+
+;:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+CCOUNTED_UNICODE_STRING MACRO txt, lora, aorl
+
+	local dum, segn, us
+	segn TEXTEQU @CurSeg
+
+	aln TEXTEQU <2>
+
+	IFNB <lora>
+		IF (OPATTR (lora)) AND 00000100y	;; immediate value ?
+			;; yes -> lora is alignment
+			aln TEXTEQU %lora
+		ELSE
+			;; no -> lora is label
+			us TEXTEQU <lora>
+		ENDIF
+	ENDIF
+
+	IFNB <aorl>
+		IF (OPATTR (aorl)) AND 00000100y	;; immediate value ?
+			;; yes -> aorl is alignment
+			aln TEXTEQU %aorl
+		ELSE
+			;; no -> aorl is label
+			us TEXTEQU <aorl>
+		ENDIF
+	ENDIF
+
+	.const
+	IF @SizeStr(<txt>)
+		dum dw STRINGW(<txt>, aln), 0
+	ELSE
+		ALIGN aln
+		dum dw 0		
+	ENDIF
+
+	ALIGN 4
+
+	us UNICODE_STRING {(sizeof dum)-2, sizeof dum, offset dum}
+
+	@CurSeg ENDS
+	segn SEGMENT
+ENDM
+
+;:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+$COUNTED_UNICODE_STRING MACRO txt, lora, aorl
+
+	local dum, segn, us
+	segn TEXTEQU @CurSeg
+
+	aln TEXTEQU <2>
+
+	IFNB <lora>
+		IF (OPATTR (lora)) AND 00000100y	;; immediate value ?
+			;; yes -> lora is alignment
+			aln TEXTEQU %lora
+		ELSE
+			;; no -> lora is label
+			us TEXTEQU <lora>
+		ENDIF
+	ENDIF
+
+	IFNB <aorl>
+		IF (OPATTR (aorl)) AND 00000100y	;; immediate value ?
+			;; yes -> aorl is alignment
+			aln TEXTEQU %aorl
+		ELSE
+			;; no -> aorl is label
+			us TEXTEQU <aorl>
+		ENDIF
+	ENDIF
+
+	.data
+	IF @SizeStr(<txt>)
+		dum dw STRINGW(<txt>, aln), 0
+	ELSE
+		ALIGN aln
+		dum dw 0		
+	ENDIF
+
+	ALIGN 4
+
+	us UNICODE_STRING {(sizeof dum)-2, sizeof dum, offset dum}
+	@CurSeg ENDS
+	segn SEGMENT
+	EXITM <offset us>
+
+ENDM
+
+;:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+$CCOUNTED_UNICODE_STRING MACRO txt, lora, aorl
+
+	local dum, segn, us
+	segn TEXTEQU @CurSeg
+
+	aln TEXTEQU <2>
+
+	IFNB <lora>
+		IF (OPATTR (lora)) AND 00000100y	;; immediate value ?
+			;; yes -> lora is alignment
+			aln TEXTEQU %lora
+		ELSE
+			;; no -> lora is label
+			us TEXTEQU <lora>
+		ENDIF
+	ENDIF
+
+	IFNB <aorl>
+		IF (OPATTR (aorl)) AND 00000100y	;; immediate value ?
+			;; yes -> aorl is alignment
+			aln TEXTEQU %aorl
+		ELSE
+			;; no -> aorl is label
+			us TEXTEQU <aorl>
+		ENDIF
+	ENDIF
+
+	.const
+	IF @SizeStr(<txt>)
+		dum dw STRINGW(<txt>, aln), 0
+	ELSE
+		ALIGN aln
+		dum dw 0		
+	ENDIF
+
+	ALIGN 4
+
+	us UNICODE_STRING {(sizeof dum)-2, sizeof dum, offset dum}
+	@CurSeg ENDS
+	segn SEGMENT
+	EXITM <offset us>
+
+ENDM
+
+;:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+;                              T E X T   M A C R O S   E N D                                        
+;:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

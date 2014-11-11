@@ -1,0 +1,106 @@
+                                ..:: GameWall v2.1 ::..
+                                
+WARNING : THIS SOFTWARE MAY CAUSE PROBLEMS TO YOUR COMPUTER.
+                                
+[What is it ?]
+    GameWall is a little program, which is able to block all DirectX/OpenGL-based videogames. It is useful when you want
+to make your employees stop playing at work ! Or to save your children's personal and professional life...
+
+[Calpabilities]
+    The GameWall, once runned, runs by itself at each reboot. It has one list of privilegied files. If you want to add some programs
+to the privilegied list, just press the F12 key. A dialog appears, showing you the list with the blocked apps and another one with
+the privilegied ones. Use the buttons to switch the apps from one list to another.
+
+[Version Info]  --  Too much details for a commercial use , but for the team no problem !
+v0.1    ->      The GameWall is born, it blocks all games without any distinction. Was just like a little virii.
+v0.2    ->      Now we can select some privilegied apps like Windows Media Player : apparition of a Control Panel from which we can select
+                some privilegied apps and allow them to run.
+v0.3    ->      The GameWall now encrypts the files where the privilegied files names are put; difficult now for a child to add them manually !
+v0.4    ->      Some bugs fixed. No more problems at startup; and now, we cannot see anymore the value which runs the GameWall at startup in 
+                Regedit, when he's active. Ph34r !!!
+v0.5    ->      The GameWall is now a *hidden* program ! You cannot see it in the Task Manager... It is one of the first programs able to
+                do that, but it was VERY hard to discover how to do. No more problems whith children and CTRL-ALT-SUPPR !
+v0.6    ->      Now the GameWall is protected by a MD5 password. 
+                Impossible to access to the control panel without this pass, since the MD5 algo is unreversable. Some bugs fixed.
+v1.0    ->      A big new update ! Now the gamewall hides itself using a kernel-mode driver; so it now functions under non-administarator
+                environment and a lot of crashes can be forgotten. today I'm 16... and I have already written my first tricky driver !
+                Other new thing : you are now able to change the access password easily.
+v1.5    ->      Lots of bugs fixed. No more details.
+v1.6    ->      I added an ugly Nag-Screen : I have to draw a nice bitmap with other tools than paintbrush !
+v2.0    ->      Added the fuckin' Win9x compatibility !!! [ now blocks the time&date control too, but this will be for the private version only ]
+v2.1    ->      Some bugs fixed : the driver now names GWallDev ( as ServiceName ), and is the file GWallDev.sys; you have to put it in the 
+                %system32%\drivers\ path in order to run it. No more problems with loading, the bug of unloading is still the same but it appears only 
+                when you try to kill the driver like a barbarian :)
+                I also cleared and commented the source code; the driver's source code is now a lot more easy to understand, and created new modules.
+                The modules and includes needed are in the new subdirectories of the GameWall source code directory.
+v2.3    ->      Cannot really talk about the new achievements.
+                
+                
+
+
+[Note]
+If you want to uninstall the GameWall, click [End Blocking] in his control panel, after having entered the password. If you do not remember the password,
+try to kill the process using a tool like knlps, or praise God. ( you can put the hard drive into another computer and delete the exe file without 
+running the OS where it is installed )
+After that , if you enabled it in the source code, you have to remove the \Software\Microsoft\Windows\CurrentVersion\Run\_acm32 Service value from your
+registry. Otherwise it will run itself at each reboot. Note that if the gamewall is running you CANNOT remove this value.
+
+[Future Fixes]
+
+//------- Au niveau de l'installateur en Inno Setup Script
+
+    -       Il faut que l'UnInstall ne kill le soft que si on entre le bon pass juste avant.
+    Sol:    On utilise actuellement pour killer le soft un tool externe en asm qui appelle une fonction du driver pour killer le GameWall. Il faudrait
+            que cette fonction s'attache au process GameWall ( KeAttachProcess ) et lui fasse demander le check Password ( suppression de la boucle 
+            infinie ) et vérifie la valeur de Pass avant de killer le GameWall
+    
+    
+//------- Au niveau de l'exécutable lui-meme en Asm
+
+    -       ProblŠme de d‚sinstallation : celle-ci ne kill pas le soft...
+    
+    -       D‚mo pour le moment : faut mettre la partie controle horaire ds 1 fichier crypt‚ avec un mot de passe envoy‚ par l'utilisateur; 
+            un bouton permet d'enregistrer ce mot d epasse dans le log; ainsi quand j'envoie le fichier crypt‚ aprŠs paiement, il marche grƒce … la cl‚ sauv‚e dans le .ini
+
+    -       Actuellement il est certainement possible de killer le soft en tuant dans le Window Manager la boite CheckPassword une fois active...
+    Sol1:   Mettre le check Pass dans un Thread ?
+    Sol2:   Créer une autre procédure de hook, des windows cette fois, dans le driver ( tendu du slip, mais tellement l33t )
+    
+    -       Faire la protec.
+    Sol:    On distribuera une version démo 'véritable', la version retail devra etre protégée à fond : quartier libre pour ça. Notamment des trips à grands
+            coups de ring0... Peut-etre meme creer un packer spécialement pour ne serait pas stupide.
+
+    -       Améliorer l'aide HTML
+    
+    -       Créer un 'prog de secours' ki kill le GameWall sans le désinstaller, et reset le pass, pour les utilisateurs ayant oublié leur pass.
+    
+    -       Créer le site Web pour la distribution, notamment trouver un serveur mail efficace.
+    
+    -       Mettre les infos de version & copyright.
+
+    -       bilinguisme nop ? ;)
+    
+    -       Nag ne s'affiche pas sous win9x ?!
+    
+    -       Finir qques trucs encore : verification compatibilité winxp / pb win2k user : ne peut acceder au gamewall.ini ! dossier non autorisé ?
+            pis voir si fo pas ajouter une option comme quoi on veut pas que ça se relance au démarrage...
+
+[Fixed]
+
+18.06.04    Fixer le bug d'unload du driver : en effet quand on le force à se fermer avec OsrLoader, on a systématiquement un crash ; fixer ça.
+
+19.06.04    Fixer le bug d'affichage du Nag : en effet s'il s'affiche bien lors du premier lancement, il a des problemes après un redémarrage : il reste
+            'freezé' en quelque sorte. Certainement un probleme au niveau du thread qui l'appelle.    
+            
+19.06.04    *** Controle d'activité par Mutex ajouté. ***
+            
+02.07.04    Plein de bugs fixés. L'installation/désinstallation est enfin nickel et on libère toutes les ressources utilisées. 
+            L'add on est toujours un exécutable externe, mais seul l'uninstall peut le lancer. Le code source est bien plus propre.
+
+03.07.04    Pour les procedures de hook avec les bytes sauvés : utiliser LDE pour savoir combien de bytes peuvent etre recupérés sans crasher !
+            TABs crées, reste à coder le reste de l'histoire de la duree... Password étoilé dans la DlgPass.
+
+08.07.04    Beaucoup de choses fixées, notamment structure INIFILE maintenant utilisée pour le .ini. A présent, tellement de modifications en tous points
+            que je suis carrément incapable de dire exhaustivement tout ce qui a été amélioré et ajouté.
+            
+14.07.04    Controle horaire FAIT !

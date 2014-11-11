@@ -1,0 +1,158 @@
+
+#include "\masm32\include\resource.h"
+
+200                     BINARY                  "gamewall.dll"
+
+
+100 DIALOGEX 10, 15, 232, 169
+STYLE DS_SETFONT | DS_3DLOOK | DS_CONTROL | WS_CHILD | WS_VISIBLE
+FONT 8, "Tahoma", 400, 0, 0x0
+BEGIN
+    PUSHBUTTON      "Ajouter -->",2000,88,18,57,14,BS_FLAT | WS_GROUP
+    PUSHBUTTON      "<-- Retirer",2001,87,45,57,14,BS_FLAT
+    LISTBOX         500,1,13,82,154,LBS_SORT | LBS_NOINTEGRALHEIGHT | 
+                    WS_VSCROLL | WS_TABSTOP
+    LISTBOX         501,150,13,81,154,LBS_SORT | LBS_NOINTEGRALHEIGHT | 
+                    WS_VSCROLL | WS_TABSTOP
+    PUSHBUTTON      "&Enregistrer",1002,87,72,57,14,BS_FLAT
+    PUSHBUTTON      "&Fermer",1003,87,99,57,14,BS_FLAT
+    CTEXT           "Programmes bloqués",-1,2,1,81,9,WS_BORDER
+    CTEXT           "Programmes privilégiés",-1,150,1,81,9,WS_BORDER
+END
+
+101 DIALOGEX 0, 0, 291, 14
+STYLE DS_SYSMODAL | DS_SETFONT | DS_MODALFRAME | DS_3DLOOK | DS_CENTER | 
+    WS_POPUP | WS_VISIBLE
+EXSTYLE WS_EX_TOOLWINDOW
+FONT 8, "MS Sans Serif", 700, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "OK",211,241,0,50,13,BS_FLAT
+    EDITTEXT        210,0,0,236,12,ES_AUTOHSCROLL
+END
+
+102 DIALOGEX 0, 0, 268, 206
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | DS_CENTER | WS_MINIMIZEBOX | 
+    WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "GameWall - Panneau de configuration"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    CONTROL         "",1000,"SysTabControl32",0x0,7,7,254,192
+END
+
+103 DIALOGEX 10, 15, 235, 175
+STYLE DS_SETFONT | DS_FIXEDSYS | DS_CONTROL | WS_CHILD | WS_SYSMENU
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    CONTROL         "Lundi",1001,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,18,
+                    56,11
+    CONTROL         "Mardi",1002,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,33,
+                    56,11
+    CONTROL         "Mercredi",1003,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,
+                    48,56,11
+    CONTROL         "Jeudi",1004,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,63,
+                    56,11
+    CONTROL         "Vendredi",1005,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,
+                    78,56,11
+    CONTROL         "Samedi",1006,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,
+                    93,56,11
+    CONTROL         "Dimanche",1007,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,
+                    108,56,11
+    EDITTEXT        1008,73,18,30,12,ES_AUTOHSCROLL | ES_NUMBER
+    EDITTEXT        1009,73,33,30,12,ES_AUTOHSCROLL | ES_NUMBER
+    EDITTEXT        1010,73,48,30,12,ES_AUTOHSCROLL | ES_NUMBER
+    EDITTEXT        1011,73,63,30,12,ES_AUTOHSCROLL | ES_NUMBER
+    EDITTEXT        1012,73,78,30,12,ES_AUTOHSCROLL | ES_NUMBER
+    EDITTEXT        1013,73,93,30,12,ES_AUTOHSCROLL | ES_NUMBER
+    EDITTEXT        1014,73,108,30,12,ES_AUTOHSCROLL | ES_NUMBER
+    EDITTEXT        1015,107,18,30,12,ES_AUTOHSCROLL
+    EDITTEXT        1016,107,33,30,12,ES_AUTOHSCROLL
+    EDITTEXT        1017,107,48,30,12,ES_AUTOHSCROLL
+    EDITTEXT        1018,107,63,30,12,ES_AUTOHSCROLL
+    EDITTEXT        1019,107,78,30,12,ES_AUTOHSCROLL
+    EDITTEXT        1020,107,93,30,12,ES_AUTOHSCROLL
+    EDITTEXT        1021,107,108,30,12,ES_AUTOHSCROLL
+    GROUPBOX        "Jours de la semaine - Durée -- Heure",-1,7,7,138,118,
+                    WS_TABSTOP
+    PUSHBUTTON      "Mise à zéro",1022,165,20,46,15,BS_CENTER | BS_FLAT | 
+                    NOT WS_TABSTOP
+    GROUPBOX        "Remplir tout...",-1,152,80,76,44
+    EDITTEXT        1023,158,90,30,12,ES_AUTOHSCROLL | ES_NUMBER
+    EDITTEXT        1024,191,90,30,12,ES_AUTOHSCROLL
+    PUSHBUTTON      "Avec ceci",1025,168,105,40,14,BS_FLAT
+    CONTROL         "Semaine :",1026,"Button",BS_AUTOCHECKBOX,16,130,51,9
+    EDITTEXT        1027,74,128,30,12,ES_AUTOHSCROLL | ES_NUMBER
+    EDITTEXT        1028,108,128,30,12,ES_AUTOHSCROLL
+    PUSHBUTTON      "OK",1029,165,39,46,15,BS_FLAT
+    PUSHBUTTON      "Fermer",1030,165,58,46,15,BS_FLAT
+    LTEXT           "Rappel : Durées en minutes, Heures au format hh:mm  !",
+                    -1,7,147,221,21
+END
+
+104 DIALOGEX 10, 15, 224, 164
+STYLE DS_SETFONT | DS_FIXEDSYS | DS_CONTROL | WS_CHILD | WS_SYSMENU
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    PUSHBUTTON      "Mot de Passe...",1005,81,126,61,15,BS_FLAT
+    PUSHBUTTON      "Clé de Licence",1248,16,126,61,15,BS_FLAT
+    PUSHBUTTON      "Désactiver !",1004,146,126,61,15,BS_FLAT
+    CONTROL         "Seuls les administrateurs peuvent accéder à la configuration",
+                    1006,"Button",BS_AUTOCHECKBOX | BS_FLAT | WS_TABSTOP,8,
+                    27,209,10
+    CONTROL         "Interdire l'accès aux propriétés de Date/Heure",1007,
+                    "Button",BS_AUTOCHECKBOX | BS_FLAT | WS_TABSTOP,8,37,170,
+                    10
+    CONTROL         "Ne pas afficher d'image au démarrage",1008,"Button",
+                    BS_AUTOCHECKBOX | BS_FLAT | WS_TABSTOP,8,47,169,10
+    PUSHBUTTON      "Par défaut...",1009,81,108,61,15,BS_FLAT
+    PUSHBUTTON      "Valider",1010,16,108,61,15,BS_FLAT
+    PUSHBUTTON      "Fermer",1011,146,108,61,15,BS_FLAT
+    CONTROL         "Mot de passe visible dans la boîte d'accès",1012,"Button",
+                    BS_AUTOCHECKBOX | BS_FLAT | WS_TABSTOP,8,17,169,10
+    CONTROL         "Lancer au démarrage de Windows",1013,"Button",
+                    BS_AUTOCHECKBOX | BS_FLAT | WS_TABSTOP,8,57,169,10
+    CONTROL         "Afficher un rappel lors des 60 dernières secondes de jeu",
+                    1014,"Button",BS_AUTOCHECKBOX | BS_FLAT | WS_TABSTOP,8,
+                    67,204,10
+    CONTROL         "Bloquer les jeux Windows ( Freecell, Démineur... )",
+                    1015,"Button",BS_AUTOCHECKBOX | BS_FLAT | WS_TABSTOP,8,7,
+                    188,10
+    PUSHBUTTON      "Message à l'auteur",1016,117,143,98,14,0,
+                    WS_EX_CLIENTEDGE | WS_EX_STATICEDGE
+    PUSHBUTTON      "Site du GameWall",1249,7,143,98,14,0,WS_EX_CLIENTEDGE | 
+                    WS_EX_STATICEDGE
+    CONTROL         "Mode réseau local",1017,"Button",BS_AUTOCHECKBOX | 
+                    BS_FLAT | WS_TABSTOP,8,77,73,10
+    CONTROL         "Serveur",1018,"Button",BS_AUTORADIOBUTTON | WS_DISABLED,
+                    102,77,45,10
+    CONTROL         "Client",1019,"Button",BS_AUTORADIOBUTTON | WS_DISABLED,
+                    153,77,45,10
+    EDITTEXT        1020,109,90,101,12,ES_AUTOHSCROLL | WS_DISABLED
+    LTEXT           "Nom du serveur : ( \\\\serv )",IDC_STATIC,17,91,87,8
+END
+
+105 DIALOGEX 0, 0, 291, 15
+STYLE DS_SETFONT | DS_3DLOOK | DS_CENTER | WS_POPUP | WS_VISIBLE | 
+    WS_CAPTION | WS_SYSMENU
+CAPTION "Veuillez entrer votre mot de passe ci-dessous"
+FONT 8, "MS Sans Serif", 700, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "OK",211,239,2,50,13,BS_FLAT
+    EDITTEXT        210,1,2,236,13,ES_AUTOHSCROLL
+END
+
+106 DIALOGEX 10, 15, 224, 164
+STYLE DS_SETFONT | DS_FIXEDSYS | DS_CONTROL | WS_CHILD | WS_SYSMENU
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    PUSHBUTTON      "&Enregistrer",1002,41,146,57,14,BS_FLAT
+    PUSHBUTTON      "&Fermer",1003,123,146,57,14,BS_FLAT
+    CTEXT           "Interdire les exécutables suivants :",-1,38,3,151,11,
+                    WS_BORDER
+    EDITTEXT        1000,5,22,220,119,ES_MULTILINE | ES_AUTOVSCROLL | 
+                    WS_VSCROLL
+END
+
+
+IDI_ICON1               ICON                    "icon1.ico"
+
+300                     IMAGE                   "Nag.jpg"
